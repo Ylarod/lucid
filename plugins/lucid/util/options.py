@@ -145,7 +145,8 @@ class OptionListener:
         cls.__providers = providers
     
     def __new__(cls, *args, **kwargs):
-        obj = super().__new__(cls, *args, **kwargs)
+        # 避免向 PyQt/SIP 的 __new__ 传参导致兼容性问题（IDA 9.2 / Py3.11）
+        obj = super().__new__(cls)
         obj.notify_creation()
         return obj
     

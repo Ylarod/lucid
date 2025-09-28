@@ -509,7 +509,7 @@ class MicrocodeExplorerModel(object):
 # UI Components
 #-----------------------------------------------------------------------------
 
-class MicrocodeExplorerView(OptionListener, QtWidgets.QWidget, providers = [ MicrocodeOptions ]):
+class MicrocodeExplorerView(OptionListener, QtWidgets.QWidget):
     """
     The view component of the Microcode Explorer.
     """
@@ -524,6 +524,13 @@ class MicrocodeExplorerView(OptionListener, QtWidgets.QWidget, providers = [ Mic
         self.model = model
         self.controller = controller
 
+        # IDA 9.2 / SIP 元类不接受类定义关键字，改为运行时注册监听器
+        # 与原先的 providers = [ MicrocodeOptions ] 行为等效
+        try:
+            MicrocodeOptions.add_listener(self)
+        except Exception:
+            pass
+
         # initialize the plugin UI
         self._ui_init()
         self._ui_init_signals()
@@ -531,6 +538,10 @@ class MicrocodeExplorerView(OptionListener, QtWidgets.QWidget, providers = [ Mic
     def unload(self):
         ida_kernwin.close_widget(self._twidget, ida_kernwin.PluginForm.WCLS_DELETE_LATER)
         self._cleanup_hooks()
+        try:
+            MicrocodeOptions.remove_listener(self)
+        except Exception:
+            pass
     
     def notify_change(self, option_name, option_value, **kwargs):
         """
